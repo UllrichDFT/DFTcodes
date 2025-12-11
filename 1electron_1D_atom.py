@@ -1,18 +1,28 @@
 # This program solves the Schroedinger equation for one electron in a
-# soft-Coulomb external potential. 
+# soft-Coulomb external potential, to get the exact ground-state density n(x).
+#
+# This problem can also be treated with DFT. Here, we obtain the exact
+# xc potential for this system, and also the approximate exchange-only LDA.
+# 
+# The purpose of the exercise is to look at the asymptotic behavior of
+# the exact and the LDA xc potentials for large x.
+#
+#----------------------------User input starts here----------------------------
+
+NGRID = 401    # number of grid points (always an odd number)
+XMAX = 20.     # the numerical grid goes from -XMAX < x < XMAX
+Aatom = 1.     # Coulomb softening parameter of the 1D atom potential
+A = 1.         # Coulomb softening parameter of the electron interaction (keep fixed)
+
+#-----------------------------User input ends here-----------------------------
+
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import simpson   # integration with Simpson's rule
 from scipy.integrate import quad    # integration with Gaussian quadrature
 from scipy.special import kn        # The modified Bessel functions
-#
-#------------------------------------------------------------------------
-NGRID = 601    # number of grid points (always an odd number)
-XMAX = 30.     # the numerical grid goes from -XMAX < x < XMAX
-A = 2.         # Coulomb softening parameter of the external potential
-A_INT = 1.     # Coulomb softening parameter of the electron interaction
-#--------------------------------------------------------------------------
+
 #
 DX = 2.*XMAX/(NGRID-1)  # grid spacing
 PI = math.pi  # define pi here
@@ -35,7 +45,7 @@ V_one_over_x = np.zeros(NGRID)
 # Define the soft Coulomb potential (this is the external potential)
 #
 for i in range(NGRID):
-    V[i]=-1.0/math.sqrt(A**2 + x[i]**2)
+    V[i]=-1.0/math.sqrt(Aatom**2 + x[i]**2)
 #
 #  Seven-point formula:
 #  
@@ -73,10 +83,11 @@ print(' ')
 plt.axis([-XMAX,XMAX,-1.0,0.5])  #set plotting range: x runs from -XMAX to XMAX
 #                                                   y runs from -1.5 to 0.5
 #
-#p.plot(x,V)    #plot the external potential
+#plt.plot(x,V,label='external potential')    #plot the external potential
 plt.plot(x,n,label='density')      #plot the density
 #
-# Now calculate the exact XC potential:
+# Now calculate the exact XC potential, which equals minus the Hartree
+# potential for the case N=1:
 #
 for i in range(NGRID):
     
@@ -86,7 +97,7 @@ for i in range(NGRID):
         V_one_over_x[i] = -1.e8
         
     for j in range(NGRID):
-        vint[j]=n[j]/math.sqrt(A_INT**2 + (x[i]-x[j])**2)
+        vint[j]=n[j]/math.sqrt(A**2 + (x[i]-x[j])**2)
     result = simpson(vint,x=x)
     VXC[i] = -result
 #
@@ -95,14 +106,15 @@ for i in range(NGRID):
 plt.plot(x,VXC,label='exact VXC')
 plt.plot(x,V_one_over_x, label='-1/x')
 #
-# Calculate the LDA exchange potential VX_LDA and plot it:
+# Calculate the LDA exchange potential VX_LDA and plot it.
+# This uses the expression from eqn (15.7).
 #    
 for i in range(NGRID):
-    upper = n[i]*PI*A_INT  
+    upper = n[i]*PI*A  
     def f(j):
         return kn(0,j)
     result, _ = quad(f,0.,upper)
-    VX_LDA[i] = -result/(PI*A_INT)
+    VX_LDA[i] = -result/(PI*A)
 #
 plt.plot(x,VX_LDA, label='VX LDA')
 plt.xlabel('x')

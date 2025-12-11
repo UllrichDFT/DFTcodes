@@ -1,21 +1,28 @@
 # This program solves the 1D Kohn-Sham equation for two electrons in a
 # harmonic-oscillator potential, using exchange-only LDA.
+#
+# Check carefully whether the self-consistent iterations converge to
+# the correct ground state! You can tell by looking at the density:
+# If n(x) is not symmetric about x=0, then something went wrong.
+#
+#----------------------------User input starts here----------------------------
+
+NGRID = 101   # number of grid points (always an odd number)
+XMAX = 5.     # the numerical grid goes from -XMAX < x < XMAX
+KSPRING = 1.  # spring constant of the harmonic oscillator potential
+A = 1.        # Coulomb softening parameter for the electron interaction
+TOL = 1.e-10  # numerical tolerance (the convergence criterion)
+MIX = 0.85    # mixing parameter for the self-consistency iterations
+
+#-----------------------------User input ends here-----------------------------
+
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 from scipy.integrate import simpson   # integration with Simpson's rule
 from scipy.integrate import quad    # integration with Gaussian quadrature
 from scipy.special import kn        # The modified Bessel functions
-#
-#--------------------------------------------------------------------------
-NGRID = 101   # number of grid points (always an odd number)
-XMAX = 5.     # the numerical grid goes from -XMAX < x < XMAX
-KSPRING = 1.  # spring constant of the harmonic oscillator potential
-A = 1.      # Coulomb softening parameter
-TOL = 1.e-10  # numerical tolerance (the convergence criterion)
-MIX = 0.8    # mixing parameter for the self-consistency iterations
-#--------------------------------------------------------------------------
-#
+
 DX = 2.*XMAX/(NGRID-1)  # grid spacing
 PI = math.pi  # define pi here
 
@@ -41,14 +48,6 @@ for i in range(NGRID):
     n[i] = n_noninteracting[i]
     n1[i] = n[i]
 #
-#  Three-point formula:
-#
-#for i in range(NGRID):
-#    diag[i]=g(x[i]) + 1./DX**2
-#for i in range(NGRID-1):
-#    MAT[i,i+1] = -0.5/DX**2
-#    MAT[i+1,i] = -0.5/DX**2
-#
 #  Seven-point formula:
 #    
 for i in range(NGRID):
@@ -65,9 +64,9 @@ for i in range(NGRID-3):
 #
 #------------------------------------------------------------------------
 # Here is the start of the self-consistency loop. We initialize the
-# energy as that of two noninteacting electrons in a 1D harmonic potential
+# energy as that of two noninteracting electrons in a 1D harmonic potential.
 #------------------------------------------------------------------------
-crit = 1.
+crit = 1.   # this is criterion that will tell us whether we are converged.
 EKS_previous = math.sqrt(KSPRING) 
 counter = 0
 while crit > TOL:
@@ -93,12 +92,19 @@ while crit > TOL:
 #    
     for i in range(NGRID):        
         '''
+        # This calculates the LDA exchange potential from eqn (15.7).
+        # Numerically this takes a bit longer, so we won't use it here.        
+        
         upper = n[i]*PI*A  
         def f(j):
             return kn(0,j)
         result, _ = quad(f,0.,upper)
         VX[i] = -result/(PI*A)
         '''
+        
+        # This calculates the LDA exchange potential from eqn (12.10), see
+        # exercise (12.1).
+        
         z = A*n[i]
         uu = 0.0194*z + 1.06*z**2 + 0.5*z**3
         vv = 0.704 + 2.23*z + z**2
@@ -144,11 +150,11 @@ plt.show()
 #
 vint = VH * n
 result = simpson(vint,x=x)
-EH = -0.5*result
+EH = 0.5*result
 #
 vint = VX * n
 result = simpson(vint,x=x)
-EVX = - result
+EVX = result
 #
 vint = (0.5*x**2+VH+VX) * n
 result = simpson(vint,x=x)
@@ -176,16 +182,16 @@ for i in range(NGRID):
     vint[i] = -uu/(A**2*vv)
     
 EX = simpson(vint,x=x)
-#
-E = EKS + EH + EVX + EX    # total ground-state energy
-#
-TS = EKS - ETS
-#
+
+E = EKS - EH - EVX + EX    # total ground-state energy, see eqn (11.18)
+
+TS = EKS - ETS  # noninteracting kinetic energy, see eqn (11.17)
+
 print('')
 print(' Kohn-Sham energy: EKS =', EKS)
 print('          V energy: EV =', EV)
-print('    Hartree energy: EH =', -EH)
-print('        VX energy: EVX =', -EVX)
+print('    Hartree energy: EH =', EH)
+print('        VX energy: EVX =', EVX)
 print('   Exchange energy: EX =', EX)
 print('    kinetic energy: TS =', TS)
 print('--------------------------------------------')

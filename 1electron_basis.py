@@ -1,23 +1,26 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import math
-#------------------------------------------------------------------------
 # This program solves the Schroedinger equation for one electron in using an 
 # expansion in particle-in-a-box cosine functions. The user can choose between
 # a harmonic oscillator potential or a delta potential.
-#------------------------------------------------------------------------
+
+#----------------------------User input starts here----------------------------
+
 NGRID = 101   # number of grid points (always an odd number)
 NBASIS = 10   # number of basis functions (only choose cosines)
 XMAX = 5     # The numerical grid goes from -XMAX < x < XMAX.
-             # XMAX also defines the box size for the
-             # particle-in-a-box basis functions. It may have to be adjusted.
+             # XMAX also defines the box size for the particle-in-a-box 
+             # basis functions, where L=2*XMAX. It may have to be adjusted.
 
 Potential = 1  # Choose potential: 1 (harmonic potential) or 2 (delta potential)
 
 Kspring = 1.  # spring constant of the harmonic oscillator potential
 alpha = 1.    # strength of the delta potential
-#--------------------------------------------------------------------------
-#
+
+#-----------------------------User input ends here-----------------------------
+
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+
 L = 2*XMAX
 DX = 2.*XMAX/(NGRID-1)  # grid spacing
 PI = 3.141592653589793  # define pi here

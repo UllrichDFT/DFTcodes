@@ -1,17 +1,23 @@
 # This program solves the Schroedinger equation for one electron in a
 # harmonic-oscillator potential. The purpose is to test different versions
 # of the finite-difference method.
+#
+# The grid spacing Delta (here called "DX") is determined by the number of
+# grid points (NGRID) and the overall size of the grid (XMAX).
+#
+#----------------------------User input starts here----------------------------
+
+NGRID = 101   # number of grid points (always an odd number)
+XMAX = 5.     # the numerical grid goes from -XMAX < x < XMAX
+KSPRING = 1.  # spring constant of the harmonic oscillator potential
+NPOINT = 7    # which formula to use: three-point, five-point or seven-point
+
+#-----------------------------User input ends here-----------------------------
+
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-#
-#------------------------------------------------------------------------
-NGRID = 101    # number of grid points (always an odd number)
-XMAX = 5.     # the numerical grid goes from -XMAX < x < XMAX
-KSPRING = 1.  # spring constant of the harmonic oscillator potential
-NPOINT = 3    # which formula to use: three-point, five-point or seven-point
-#--------------------------------------------------------------------------
-#
+
 DX = 2.*XMAX/(NGRID-1)  # grid spacing
 PI = math.pi  # define pi here
 #
@@ -98,6 +104,8 @@ plt.title("Density of one electron in a parabolic potential")
 plt.legend(['exact solution','numerical solution'])
 plt.show() 
 #
+print('Grid spacing: Delta = ', DX)
+print()
 print('Ground-state energy: E =', E)
 print(' ')
 print('Error:', E-0.5)
