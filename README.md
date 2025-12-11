@@ -1,2 +1,2 @@
 # DFTcodes
-Python codes for the DFT textbook
+Python codes for "Introduction to DFT" by Ullrich and Wasserman.
